@@ -2,199 +2,166 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>교회학교 중앙연회 연합회 문서작성 시스템</title>
-    <!-- 구글 로그인 및 API 스크립트 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인터넷문서 관리</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
     <style>
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
-        }
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; }
+       
+        /* 상단 툴바 */
         .toolbar {
+            max-width: 800px;
+            margin: 0 auto 15px auto;
             background: #fff;
             padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
-            gap: 8px;
             flex-wrap: wrap;
+            gap: 5px;
             align-items: center;
         }
-        .toolbar select {
-            padding: 8px 12px;
+        button, label.btn-upload {
+            padding: 6px 12px;
+            cursor: pointer;
+            background: #f0f0f0;
             border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 13px;
+            display: inline-block;
+        }
+        button:hover, label.btn-upload:hover { background: #e0e0e0; }
+        .btn-add { background: #e6f4ea; border-color: #34a853; color: #137333; font-weight: bold; }
+        .btn-add:hover { background: #ceead6; }
+        .btn-save { background: #e8f0fe; border-color: #1a73e8; color: #1967d2; font-weight: bold; }
+        .btn-save:hover { background: #d2e3fc; }
+        .btn-img { background: #fef7e0; border-color: #fbbc04; color: #b06000; font-weight: bold; }
+        .btn-img:hover { background: #fef1c7; }
+       
+        #auth-status { margin-left: auto; font-size: 13px; color: #555; }
+
+        /* A4 용지 규격 및 가운데 정렬 */
+        #editor-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
             background: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-common { padding: 8px 12px; border: 1px solid #bbb; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-common:hover { opacity: 0.85; }
-        .btn-style { background-color: #e9ecef; color: #333; font-weight: normal; }
-        .btn-align { background-color: #e2e8f0; color: #333; font-weight: normal; }
-        .btn-table { background-color: #e0f2fe; color: #0369a1; }
-        .btn-cloud { background-color: #dcfce7; color: #15803d; }
-        .login-btn {
-            background: #4285F4;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .workspace {
-            display: flex;
-            justify-content: center;
-        }
-        .a4-page {
-            width: 794px;
-            height: 1123px;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            padding: 40px;
+            padding: 20mm;
+            border: 1px solid #d3d3d3;
+            border-radius: 2px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             box-sizing: border-box;
-            outline: none;
-            overflow: hidden;
-            position: relative;
         }
-        table.editor-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
+
+        /* 에디터 내부 이미지 크기 조절이 가능하도록 스타일 지정 */
+        #doc-content img {
+            max-width: 100%;
+            height: auto;
+            resize: both;
+            overflow: auto;
+            cursor: pointer;
         }
-        table.editor-table th, table.editor-table td {
-            border: 1px solid #333;
-            padding: 8px;
-            min-height: 20px;
+        #doc-content img:focus {
+            outline: 2px dashed #1a73e8;
         }
-        .file-info-area {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #f8fafc;
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 10px;
-            font-size: 14px;
+
+        /* 인쇄 시 여백 최적화 */
+        @media print {
+            body { background: none; padding: 0; }
+            .toolbar { display: none; }
+            #editor-container { border: none; box-shadow: none; width: 100%; padding: 0; }
         }
+
+        /* 표 및 셀 위아래 간격 1/2 축소 스타일 */
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ccc; padding: 4px 8px; }
     </style>
 </head>
 <body>
 
-    <div class="header-bar">
-        <h2>교회학교 연합회 문서작성 시스템</h2>
-        <div>
-            <span id="user-email" style="margin-right: 15px; font-weight: bold;"></span>
-            <button id="auth-btn" class="login-btn" onclick="handleAuthClick()">구글 로그인</button>
-        </div>
-    </div>
-
     <div class="toolbar">
-        <label>글꼴:</label>
-        <select onchange="formatDoc('fontName', this.value)">
-            <option value="Malgun Gothic">맑은 고딕</option>
-            <option value="Gulim">굴림</option>
-            <option value="Batang">바탕</option>
-            <option value="Arial">Arial</option>
-        </select>
-
-        <label>크기:</label>
-        <select onchange="formatDoc('fontSize', this.value)">
-            <option value="3">보통</option>
-            <option value="1">매우 작게</option>
-            <option value="2">작게</option>
-            <option value="4">약간 크게</option>
-            <option value="5">크게</option>
-            <option value="6">매우 크게</option>
-            <option value="7">가장 크게</option>
-        </select>
-
-        <button class="btn-common btn-style" onclick="formatDoc('bold', null)" style="font-weight:bold;">굵게</button>
-        <button class="btn-common btn-style" onclick="formatDoc('italic', null)" style="font-style:italic;">기울임</button>
-        <button class="btn-common btn-style" onclick="formatDoc('underline', null)" style="text-decoration:underline;">밑줄</button>
+        <span id="auth-status">로그인 확인 중...</span>
+        <button onclick="handleAuthClick()">구글 로그인</button>
+        <button class="btn-add" onclick="addNewPage()">➕ 페이지 추가</button>
+        <button class="btn-save" onclick="saveDocument()">저장</button>
+        <button onclick="saveAsNewDocument()">다른 이름으로 저장</button>
+        <button onclick="openDocumentList()">📂 문서 불러오기</button>
        
-        <button class="btn-common btn-align" onclick="formatDoc('justifyLeft', null)">좌정렬</button>
-        <button class="btn-common btn-align" onclick="formatDoc('justifyCenter', null)">가운데</button>
-        <button class="btn-common btn-align" onclick="formatDoc('justifyRight', null)">우정렬</button>
+        <!-- 이미지 추가 버튼 (파일 선택 숨김 처리 연동) -->
+        <label class="btn-upload btn-img">
+            🖼️ 이미지 추가
+            <input type="file" id="image-loader" accept="image/*" style="display:none;" onchange="insertImage(event)">
+        </label>
 
-        <button class="btn-common btn-table" onclick="insertTable()">표 삽입(2x2)</button>
-        <button class="btn-common btn-table" onclick="addRow()">행 추가</button>
-        <button class="btn-common btn-table" onclick="deleteRow()">행 삭제</button>
-        <button class="btn-common btn-table" onclick="addCol()">열 추가</button>
-        <button class="btn-common btn-table" onclick="deleteCol()">열 삭제</button>
-        <button class="btn-common btn-table" onclick="mergeCells()">셀 병합</button>
-
-        <button class="btn-common btn-cloud" onclick="saveDocument()">저장</button>
-        <button class="btn-common btn-cloud" onclick="saveAsDocument()">다른 이름으로 저장</button>
-        <button class="btn-common" style="background-color: #fef08a; color: #854d0e;" onclick="loadFromDrive()">구글 드라이브 불러오기</button>
+        <button onclick="formatText('bold')">굵게</button>
+        <button onclick="formatText('justifyLeft')">좌정렬</button>
+        <button onclick="formatText('justifyCenter')">가운데</button>
+        <button onclick="formatText('justifyRight')">우정렬</button>
+        <button onclick="insertTable()">표 삽입(2x2)</button>
+        <button onclick="addRow()">행 추가</button>
+        <button onclick="deleteRow()">행 삭제</button>
+        <button onclick="addColumn()">열 추가</button>
+        <button onclick="deleteColumn()">열 삭제</button>
+        <span id="status-msg" style="width: 100%; color: blue; font-size: 12px; margin-top: 5px;"></span>
     </div>
 
-    <div class="workspace" style="flex-direction: column; align-items: center;">
-        <div class="file-info-area" style="width: 794px;">
-            <span>현재 문서명:</span>
-            <input type="text" id="current-filename" value="A4_Document" style="flex: 1; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;" />
-            <span style="color: #666; font-size: 12px;">(.html)</span>
+    <!-- 문서 목록 선택 모달 -->
+    <div id="file-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:6px; width:400px; max-height:80vh; overflow-y:auto;">
+            <h3>저장된 문서 목록</h3>
+            <ul id="file-list" style="list-style:none; padding:0; margin:15px 0;"></ul>
+            <button onclick="closeDocumentList()" style="width:100%;">닫기</button>
         </div>
-        <div id="editor" class="a4-page" contenteditable="true">
-            여기에 내용을 입력하세요...
+    </div>
+
+    <div id="editor-container">
+        <h2 contenteditable="true" id="doc-title" style="border-bottom: 1px dashed #ccc; padding-bottom: 5px; outline: none;">2027년 행사계획안</h2>
+        <div contenteditable="true" id="doc-content" style="margin-top: 15px; min-height: 200mm; outline: none;">
+            여기에 내용을 입력하세요.
         </div>
     </div>
 
     <script>
-        const CLIENT_ID = '542656918745-7ksfqphvr1rdjq7q64392f2vb0m81idp.apps.googleusercontent.com';
+        const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
         const API_KEY = '';
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-       
-        // 지정하신 구글 드라이브 폴더 ID
-        const TARGET_FOLDER_ID = '1j6Ui5DrDHz-Gn-f6lAfJ9y0-pFnMdaaA';
+        const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+        const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
+        const TARGET_FOLDER_ID = '1j6Ui5DrDHz-Gn-f6lAfJ9y0-pFnMdaA';
         let tokenClient;
         let gapiInited = false;
-        let gsiInited = false;
+        let gisInited = false;
         let currentFileId = null;
 
-        function checkAuthButton() {
-            if (gapiInited && gsiInited) {
-                console.log('Google API 초기화 완료');
-            }
-        }
-
-        window.gapiLoaded = function() {
+        function gapiLoaded() {
             gapi.load('client', initializeGapiClient);
         }
 
         async function initializeGapiClient() {
             await gapi.client.init({
                 apiKey: API_KEY,
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                discoveryDocs: DISCOVERY_DOCS,
             });
             gapiInited = true;
-            checkAuthButton();
+            maybeEnableButtons();
         }
 
-        window.gisLoaded = function() {
+        function gisLoaded() {
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID,
                 scope: SCOPES,
                 callback: '',
             });
-            gsiInited = true;
-            checkAuthButton();
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                document.getElementById('auth-status').innerText = '준비 완료';
+            }
         }
 
         function handleAuthClick() {
@@ -202,9 +169,8 @@
                 if (resp.error !== undefined) {
                     throw (resp);
                 }
-                document.getElementById('auth-btn').innerText = '로그인됨';
-                document.getElementById('auth-btn').style.background = '#34A853';
-                fetchUserProfile();
+                document.getElementById('auth-status').innerText = '로그인됨';
+                loadLatestDocument();
             };
 
             if (gapi.client.getToken() === null) {
@@ -214,27 +180,163 @@
             }
         }
 
-        async function fetchUserProfile() {
+        async function loadLatestDocument() {
             try {
-                let response = await gapi.client.drive.about.get({ fields: 'user' });
-                let email = response.result.user.emailAddress;
-                document.getElementById('user-email').innerText = email;
+                const response = await gapi.client.drive.files.list({
+                    q: `'${TARGET_FOLDER_ID}' in parents and mimeType = 'application/json' and trashed = false`,
+                    orderBy: 'createdTime desc',
+                    pageSize: 1
+                });
+
+                const files = response.result.files;
+                if (files && files.length > 0) {
+                    currentFileId = files[0].id;
+                    getFileContent(currentFileId);
+                } else {
+                    document.getElementById('status-msg').innerText = '저장된 문서가 없습니다. 새로 작성해 주세요.';
+                }
             } catch (err) {
-                console.error('사용자 정보 로드 실패', err);
+                console.error(err);
+                alert("파일을 불러오는 중 오류가 발생했습니다.");
             }
         }
 
-        function formatDoc(cmd, value) {
-            document.execCommand(cmd, false, value);
+        async function getFileContent(fileId) {
+            try {
+                const response = await gapi.client.drive.files.get({
+                    fileId: fileId,
+                    alt: 'media'
+                });
+                const data = JSON.parse(response.body);
+                document.getElementById('doc-title').innerText = data.title || '';
+                document.getElementById('doc-content').innerHTML = data.content || '';
+                document.getElementById('status-msg').innerText = '문서를 불러왔습니다.';
+            } catch (err) {
+                console.error(err);
+                alert("문서를 불러오는 중 오류가 발생했습니다.");
+            }
+        }
+
+        // 문서 목록 불러오기 창 열기
+        async function openDocumentList() {
+            if (!gapi.client.getToken()) {
+                alert("먼저 구글 로그인을 해주세요.");
+                return;
+            }
+            try {
+                const response = await gapi.client.drive.files.list({
+                    q: `'${TARGET_FOLDER_ID}' in parents and mimeType = 'application/json' and trashed = false`,
+                    orderBy: 'modifiedTime desc',
+                    pageSize: 50
+                });
+
+                const files = response.result.files;
+                const fileListUl = document.getElementById('file-list');
+                fileListUl.innerHTML = '';
+
+                if (files && files.length > 0) {
+                    files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.style.padding = '8px';
+                        li.style.borderBottom = '1px solid #eee';
+                        li.style.cursor = 'pointer';
+                       
+                        const displayName = file.name.endsWith('.json') ? file.name.slice(0, -5) : file.name;
+                        li.innerText = displayName;
+                       
+                        li.onmouseover = () => li.style.background = '#f9f9f9';
+                        li.onmouseout = () => li.style.background = '#fff';
+                        li.onclick = () => {
+                            currentFileId = file.id;
+                            getFileContent(file.id);
+                            closeDocumentList();
+                        };
+                        fileListUl.appendChild(li);
+                    });
+                } else {
+                    fileListUl.innerHTML = '<li style="padding:10px; color:#775;">저장된 문서가 없습니다.</li>';
+                }
+
+                document.getElementById('file-modal').style.display = 'flex';
+            } catch (err) {
+                console.error(err);
+                alert("문서 목록을 불러오는 중 오류가 발생했습니다.");
+            }
+        }
+
+        function closeDocumentList() {
+            document.getElementById('file-modal').style.display = 'none';
+        }
+
+        // 페이지 추가 버튼 기능 (새 문서 준비)
+        function addNewPage() {
+            if (confirm("새로운 페이지(문서)를 만드시겠습니까? 현재 작성 중인 내용은 초기화됩니다.")) {
+                currentFileId = null;
+                document.getElementById('doc-title').innerText = '새 문서 제목';
+                document.getElementById('doc-content').innerHTML = '내용을 입력하세요.';
+                document.getElementById('status-msg').innerText = '새 페이지가 준비되었습니다. 저장하면 구글 드라이브에 생성됩니다.';
+            }
+        }
+
+        // 다른 이름으로 저장
+        function saveAsNewDocument() {
+            currentFileId = null;
+            saveDocument();
+        }
+
+        // 이미지 삽입 및 Base64 변환 함수 (크기 조절 스타일 포함)
+        function insertImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgHTML = `<p><img src="${e.target.result}" style="max-width: 100%; height: auto; resize: both; overflow: auto; cursor: pointer;" onclick="this.focus()" /></p><p><br></p>`;
+               
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const div = document.createElement('div');
+                    div.innerHTML = imgHTML;
+                    range.insertNode(div);
+                } else {
+                    document.getElementById('doc-content').innerHTML += imgHTML;
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // 동일한 파일 다시 선택 가능하도록 초기화
+        }
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
         }
 
         function insertTable() {
-            let tableHTML = '<table class="editor-table"><tr><td>내용</td><td>내용</td></tr><tr><td>내용</td><td>내용</td></tr></table><p><br></p>';
-            document.execCommand('insertHTML', false, tableHTML);
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+
+            const table = document.createElement('table');
+            table.style.borderCollapse = 'collapse';
+            table.style.width = '100%';
+            table.style.margin = '10px 0';
+
+            for (let i = 0; i < 2; i++) {
+                const row = table.insertRow();
+                for (let j = 0; j < 2; j++) {
+                    const cell = row.insertCell();
+                    cell.style.border = '1px solid #ccc';
+                    cell.style.padding = '4px 8px';
+                    cell.innerHTML = '<br>';
+                }
+            }
+
+            range.deleteContents();
+            range.insertNode(table);
         }
 
         function getSelectedCell() {
-            let selection = window.getSelection();
+            const selection = window.getSelection();
             if (!selection.rangeCount) return null;
             let node = selection.anchorNode;
             while (node && node.nodeName !== 'TD' && node.nodeName !== 'TH') {
@@ -244,281 +346,100 @@
         }
 
         function addRow() {
-            let cell = getSelectedCell();
-            if (!cell) { alert('표 안의 셀을 먼저 선택해주세요.'); return; }
-            let row = cell.parentNode;
-            let table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
-            let colCount = row.cells.length;
-           
-            let newRow = table.insertRow(row.rowIndex + 1);
+            const cell = getSelectedCell();
+            if (!cell) { alert('표 안의 셀을 선택해주세요.'); return; }
+            const row = cell.parentNode;
+            const table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
+            const rowIndex = row.rowIndex;
+            const newRow = table.insertRow(rowIndex + 1);
+            const colCount = row.cells.length;
             for (let i = 0; i < colCount; i++) {
-                let newCell = newRow.insertCell(i);
-                newCell.innerHTML = '내용';
-                newCell.style.border = '1px solid #333';
-                newCell.style.padding = '8px';
+                const newCell = newRow.insertCell();
+                newCell.style.border = '1px solid #ccc';
+                newCell.style.padding = '4px 8px';
+                newCell.innerHTML = '<br>';
             }
         }
 
         function deleteRow() {
-            let cell = getSelectedCell();
-            if (!cell) { alert('삭제할 행 안의 셀을 선택해주세요.'); return; }
-            let row = cell.parentNode;
-            let table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
-            if (table.rows.length <= 1) { alert('마지막 남은 행은 삭제할 수 없습니다.'); return; }
+            const cell = getSelectedCell();
+            if (!cell) { alert('삭제할 표 안의 셀을 선택해주세요.'); return; }
+            const row = cell.parentNode;
+            const table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
+            if (table.rows.length <= 1) { alert('마지막 행은 삭제할 수 없습니다.'); return; }
             row.parentNode.removeChild(row);
         }
 
-        function addCol() {
-            let cell = getSelectedCell();
-            if (!cell) { alert('표 안의 셀을 먼저 선택해주세요.'); return; }
-            let table = cell.parentNode.parentNode.nodeName === 'TBODY' ? cell.parentNode.parentNode.parentNode : cell.parentNode.parentNode;
-           
+        function addColumn() {
+            const cell = getSelectedCell();
+            if (!cell) { alert('표 안의 셀을 선택해주세요.'); return; }
+            const row = cell.parentNode;
+            const table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
+            const cellIndex = cell.cellIndex;
             for (let i = 0; i < table.rows.length; i++) {
-                let newCell = table.rows[i].insertCell(cell.cellIndex + 1);
-                newCell.innerHTML = '내용';
-                newCell.style.border = '1px solid #333';
-                newCell.style.padding = '8px';
+                const newCell = table.rows[i].insertCell(cellIndex + 1);
+                newCell.style.border = '1px solid #ccc';
+                newCell.style.padding = '4px 8px';
+                newCell.innerHTML = '<br>';
             }
         }
 
-        function deleteCol() {
-            let cell = getSelectedCell();
-            if (!cell) { alert('삭제할 열 안의 셀을 선택해주세요.'); return; }
-            let colIndex = cell.cellIndex;
-            let table = cell.parentNode.parentNode.nodeName === 'TBODY' ? cell.parentNode.parentNode.parentNode : cell.parentNode.parentNode;
-           
-            if (table.rows[0].cells.length <= 1) { alert('마지막 남은 열은 삭제할 수 없습니다.'); return; }
-
+        function deleteColumn() {
+            const cell = getSelectedCell();
+            if (!cell) { alert('삭제할 표 안의 셀을 선택해주세요.'); return; }
+            const row = cell.parentNode;
+            const table = row.parentNode.nodeName === 'TBODY' ? row.parentNode.parentNode : row.parentNode;
+            if (row.cells.length <= 1) { alert('마지막 열은 삭제할 수 없습니다.'); return; }
+            const cellIndex = cell.cellIndex;
             for (let i = 0; i < table.rows.length; i++) {
-                table.rows[i].deleteCell(colIndex);
+                table.rows[i].deleteCell(cellIndex);
             }
         }
 
-        function mergeCells() {
-            let selection = window.getSelection();
-            if (!selection.rangeCount) return;
-            let range = selection.getRangeAt(0);
-            let container = range.commonAncestorContainer;
-            if (container.nodeType === 3) container = container.parentNode;
-           
-            let cells = container.querySelectorAll ? container.querySelectorAll('td, th') : [];
-            let selectedCells = [];
-            cells.forEach(cell => {
-                if (selection.containsNode(cell, true)) {
-                    selectedCells.push(cell);
-                }
-            });
-
-            if (selectedCells.length < 2) {
-                alert('병합할 셀들을 마우스로 드래그하여 여러 개 선택(범위 지정)한 뒤 눌러주세요.');
-                return;
-            }
-
-            let firstCell = selectedCells[0];
-            let htmlContent = firstCell.innerHTML;
-           
-            for (let i = 1; i < selectedCells.length; i++) {
-                htmlContent += '<br>' + selectedCells[i].innerHTML;
-                selectedCells[i].parentNode.removeChild(selectedCells[i]);
-            }
-            firstCell.innerHTML = htmlContent;
-            firstCell.colSpan = selectedCells.length;
-            alert('셀이 병합되었습니다.');
-        }
-
-        // --- 일반 [저장] 기능 (지정한 폴더 안에 덮어쓰기 또는 신규 저장) ---
         async function saveDocument() {
-            let token = gapi.client.getToken();
-            if (!token) {
-                alert('먼저 구글 로그인을 해주세요.');
-                return;
-            }
-
-            let fileNameInput = document.getElementById('current-filename').value.trim();
-            if (!fileNameInput) {
-                alert('문서 파일명을 입력해주세요.');
-                return;
-            }
-            let fullFileName = fileNameInput.endsWith('.html') ? fileNameInput : fileNameInput + '.html';
-
-            let content = document.getElementById('editor').innerHTML;
-            let htmlFileContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'Malgun Gothic',sans-serif;padding:40px;}.a4-page{width:794px;margin:0 auto;}</style></head><body><div class="a4-page">${content}</div></body></html>`;
-           
-            try {
-                if (currentFileId) {
-                    // 기존 파일이 있으면 이름 및 내용 업데이트
-                    await fetch(`https://www.googleapis.com/drive/v3/files/${currentFileId}`, {
-                        method: 'PATCH',
-                        headers: new Headers({
-                            'Authorization': 'Bearer ' + token.access_token,
-                            'Content-Type': 'application/json'
-                        }),
-                        body: JSON.stringify({ name: fullFileName })
-                    });
-
-                    let updateContentResponse = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${currentFileId}?uploadType=media`, {
-                        method: 'PATCH',
-                        headers: new Headers({
-                            'Authorization': 'Bearer ' + token.access_token,
-                            'Content-Type': 'text/html'
-                        }),
-                        body: htmlFileContent
-                    });
-
-                    if (updateContentResponse.ok) {
-                        alert('성공적으로 저장되었습니다!');
-                        return;
-                    }
-                }
-
-                // 기존 파일 ID가 없으면 지정된 폴더(TARGET_FOLDER_ID) 안에 새 파일로 생성
-                let blobMeta = new Blob([JSON.stringify({
-                    name: fullFileName,
-                    mimeType: 'text/html',
-                    parents: [TARGET_FOLDER_ID]
-                })], { type: 'application/json' });
-                let blobData = new Blob([htmlFileContent], { type: 'text/html' });
-
-                let form = new FormData();
-                form.append('metadata', blobMeta);
-                form.append('file', blobData);
-
-                let response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + token.access_token }),
-                    body: form
-                });
-                let result = await response.json();
-                if (result.id) {
-                    currentFileId = result.id;
-                    alert('지정된 폴더에 성공적으로 저장되었습니다!');
-                } else {
-                    console.error('Drive API 에러:', result);
-                    alert('저장 중 오류가 발생했습니다: ' + (result.error?.message || '알 수 없는 오류'));
-                }
-            } catch (error) {
-                console.error('저장 네트워크 오류', error);
-                alert('구글 드라이브 통신 중 오류가 발생했습니다.');
-            }
-        }
-
-        // --- [다른 이름으로 저장] 기능 (지정한 폴더 안에 새 파일로 강제 생성) ---
-        async function saveAsDocument() {
-            let token = gapi.client.getToken();
-            if (!token) {
-                alert('먼저 구글 로그인을 해주세요.');
-                return;
-            }
-
-            let fileNameInput = document.getElementById('current-filename').value.trim();
-            if (!fileNameInput) {
-                alert('저장할 파일명을 입력해주세요.');
-                return;
-            }
-            let fullFileName = fileNameInput.endsWith('.html') ? fileNameInput : fileNameInput + '.html';
-
-            let content = document.getElementById('editor').innerHTML;
-            let htmlFileContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'Malgun Gothic',sans-serif;padding:40px;}.a4-page{width:794px;margin:0 auto;}</style></head><body><div class="a4-page">${content}</div></body></html>`;
-           
-            let blobMeta = new Blob([JSON.stringify({
-                name: fullFileName,
-                mimeType: 'text/html',
+            const title = document.getElementById('doc-title').innerText;
+            const content = document.getElementById('doc-content').innerHTML;
+            const fileMetadata = {
+                name: title + '.json',
+                mimeType: 'application/json',
                 parents: [TARGET_FOLDER_ID]
-            })], { type: 'application/json' });
-            let blobData = new Blob([htmlFileContent], { type: 'text/html' });
+            };
 
-            let form = new FormData();
-            form.append('metadata', blobMeta);
-            form.append('file', blobData);
+            const fileContent = JSON.stringify({ title, content });
+            const blob = new Blob([fileContent], { type: 'application/json' });
 
             try {
-                let response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + token.access_token }),
-                    body: form
-                });
-                let result = await response.json();
-                if (result.id) {
-                    currentFileId = result.id; // 새 파일 ID로 갱신
-                    alert(`"${fullFileName}" (으)로 지정 폴더에 다른 이름 저장 완료되었습니다!`);
+                document.getElementById('status-msg').innerText = '저장 중...';
+
+                if (currentFileId) {
+                    const accessToken = gapi.client.getToken().access_token;
+                    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${currentFileId}?uploadType=media`, {
+                        method: 'PATCH',
+                        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                        body: blob
+                    });
+                    document.getElementById('status-msg').innerText = '성공적으로 수정(저장)되었습니다!';
                 } else {
-                    console.error('Drive API 에러:', result);
-                    alert('저장 중 오류가 발생했습니다: ' + (result.error?.message || '알 수 없는 오류'));
+                    const accessToken = gapi.client.getToken().access_token;
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
+                    form.append('file', blob);
+
+                    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                        body: form
+                    });
+                    const result = await response.json();
+                    currentFileId = result.id;
+                    document.getElementById('status-msg').innerText = '새 파일로 성공적으로 저장되었습니다!';
                 }
-            } catch (error) {
-                console.error('저장 네트워크 오류', error);
-                alert('구글 드라이브 통신 중 오류가 발생했습니다.');
-            }
-        }
-
-        // --- 구글 드라이브 불러오기 기능 (지정한 폴더 안의 파일만 조회) ---
-        async function loadFromDrive() {
-            let token = gapi.client.getToken();
-            if (-!token && !token) { // 안전 장치
-                // token check
-            }
-            if (!token) {
-                alert('먼저 구글 로그인을 해주세요.');
-                return;
-            }
-
-            try {
-                // 지정한 폴더(TARGET_FOLDER_ID) 안에 있는 HTML 파일만 검색
-                let response = await gapi.client.drive.files.list({
-                    q: `'${TARGET_FOLDER_ID}' in parents and mimeType='text/html' and trashed=false`,
-                    pageSize: 20,
-                    fields: "files(id, name, createdTime)"
-                });
-               
-                let files = response.result.files;
-                if (!files || files.length === 0) {
-                    alert('지정된 폴더에 저장된 HTML 문서 파일이 없습니다.');
-                    return;
-                }
-
-                let fileListStr = "지정 폴더의 파일 목록 (번호 입력):\n";
-                files.forEach((file, index) => {
-                    fileListStr += `${index + 1}. ${file.name} (${file.createdTime.slice(0,10)})\n`;
-                });
-
-                let choice = prompt(fileListStr);
-                if (choice === null) return;
-
-                let selectedIndex = parseInt(choice) - 1;
-                if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= files.length) {
-                    alert('올바른 번호를 입력해주세요.');
-                    return;
-                }
-
-                let selectedFile = files[selectedIndex];
-                currentFileId = selectedFile.id;
-
-                let cleanName = selectedFile.name.endsWith('.html') ? selectedFile.name.slice(0, -5) : selectedFile.name;
-                document.getElementById('current-filename').value = cleanName;
-
-                let fileResponse = await gapi.client.drive.files.get({
-                    fileId: currentFileId,
-                    alt: 'media'
-                });
-
-                let parser = new DOMParser();
-                let doc = parser.parseFromString(fileResponse.body, 'text/html');
-                let a4PageContent = doc.querySelector('.a4-page');
-               
-                if (a4PageContent) {
-                    document.getElementById('editor').innerHTML = a4PageContent.innerHTML;
-                } else {
-                    document.getElementById('editor').innerHTML = fileResponse.body;
-                }
-                alert('문서를 성공적으로 불러왔습니다!');
-
-            } catch (error) {
-                console.error('불러오기 오류', error);
-                alert('파일을 불러오는 중 오류가 발생했습니다.');
+            } catch (err) {
+                console.error(err);
+                alert("저장 중 오류가 발생했습니다.");
             }
         }
     </script>
-   
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
